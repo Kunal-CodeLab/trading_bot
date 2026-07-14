@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Binance Futures Trading Bot Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <div class="logo-area">
+                <div class="logo-icon"><i class="fa-solid fa-bolt"></i></div>
+                <div class="logo-text">
+                    <h1>Primetrade Bot</h1>
+                    <span>Binance USDT-M Futures</span>
+                </div>
+            </div>
+            <div class="header-controls">
+                <div id="mock-status-pill" class="status-pill mock-active">
+                    <span class="pulse-dot"></span>
+                    <span class="pill-text">Mock Mode Active</span>
+                </div>
+                
+                <div id="api-status-pill" class="status-pill status-unconfigured">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <span class="pill-text">API Disconnected</span>
+                </div>
+
+                <button id="settings-toggle" class="btn btn-secondary shadow-sm" title="Configure API Credentials">
+                    <i class="fa-solid fa-gears"></i> Settings
+                </button>
+            </div>
+        </header>
+
+        <main class="dashboard-grid">
+            <section class="card form-card">
+                <div class="card-header">
+                    <h2><i class="fa-solid fa-chart-line"></i> Order Terminal</h2>
+                    <div class="mode-toggle-container">
+                        <span class="toggle-label">Mock Mode</span>
+                        <label class="switch">
+                            <input type="checkbox" id="mock-mode-switch" checked>
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="side-selector">
+                        <button type="button" class="side-btn active buy" id="side-buy" data-side="BUY">
+                            <i class="fa-solid fa-arrow-trend-up"></i> BUY (Long)
+                        </button>
+                        <button type="button" class="side-btn sell" id="side-sell" data-side="SELL">
+                            <i class="fa-solid fa-arrow-trend-down"></i> SELL (Short)
+                        </button>
+                    </div>
+
+                    <div class="type-selector">
+                        <button type="button" class="type-tab active" data-type="MARKET">Market</button>
+                        <button type="button" class="type-tab" data-type="LIMIT">Limit</button>
+                        <button type="button" class="type-tab" data-type="STOP_LIMIT">Stop-Limit</button>
+                    </div>
+
+                    <form id="order-form">
+                        <div class="form-group">
+                            <label for="symbol">Symbol</label>
+                            <div class="input-wrapper">
+                                <i class="fa-solid fa-coins input-icon"></i>
+                                <input type="text" id="symbol" placeholder="e.g. BTCUSDT" value="BTCUSDT" autocomplete="off" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="quantity">Quantity</label>
+                            <div class="input-wrapper">
+                                <i class="fa-solid fa-cubes input-icon"></i>
+                                <input type="number" id="quantity" step="any" placeholder="0.001" required min="0.00000001">
+                            </div>
+                        </div>
+
+                        <div class="form-group" id="price-group" style="display: none;">
+                            <label for="price">Limit Price (USDT)</label>
+                            <div class="input-wrapper">
+                                <i class="fa-solid fa-tag input-icon"></i>
+                                <input type="number" id="price" step="any" placeholder="e.g. 65000.00">
+                            </div>
+                        </div>
+
+                        <div class="form-group" id="stop-price-group" style="display: none;">
+                            <label for="stop-price">Stop Price (USDT)</label>
+                            <div class="input-wrapper">
+                                <i class="fa-solid fa-bell input-icon"></i>
+                                <input type="number" id="stop-price" step="any" placeholder="e.g. 60000.00">
+                            </div>
+                        </div>
+
+                        <button type="submit" id="submit-order-btn" class="btn btn-primary btn-block buy-mode">
+                            Place BUY Market Order
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+            <div class="right-column-grid">
+                <section class="card config-card">
+                    <div class="card-header">
+                        <h2><i class="fa-solid fa-key"></i> Connection Info</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="info-row">
+                            <span class="info-label">Credentials Source:</span>
+                            <span id="config-source" class="badge">Checking...</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Base API URL:</span>
+                            <span id="config-url" class="text-truncate">https://testnet.binancefuture.com</span>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="card summary-card">
+                    <div class="card-header">
+                        <h2><i class="fa-solid fa-rectangle-list"></i> Request Preview</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="summary-preview">
+                            <div class="preview-item">
+                                <span class="lbl">Symbol</span>
+                                <span id="summary-symbol" class="val">-</span>
+                            </div>
+                            <div class="preview-item">
+                                <span class="lbl">Side</span>
+                                <span id="summary-side" class="val text-buy">BUY</span>
+                            </div>
+                            <div class="preview-item">
+                                <span class="lbl">Type</span>
+                                <span id="summary-type" class="val">-</span>
+                            </div>
+                            <div class="preview-item">
+                                <span class="lbl">Quantity</span>
+                                <span id="summary-quantity" class="val">-</span>
+                            </div>
+                            <div class="preview-item" id="summary-price-row" style="display:none;">
+                                <span class="lbl">Price</span>
+                                <span id="summary-price" class="val">-</span>
+                            </div>
+                            <div class="preview-item" id="summary-stop-price-row" style="display:none;">
+                                <span class="lbl">Stop Price</span>
+                                <span id="summary-stop-price" class="val">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="card response-card">
+                    <div class="card-header">
+                        <h2><i class="fa-solid fa-paper-plane"></i> API Response</h2>
+                        <span id="response-status-badge" class="response-badge pending">Idle</span>
+                    </div>
+                    <div class="card-body" id="response-content">
+                        <div class="empty-state">
+                            <i class="fa-solid fa-envelope-open-text"></i>
+                            <p>Submit an order to view the API response details here.</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <section class="card logs-and-history-card">
+            <div class="tabs-header">
+                <button class="section-tab active" data-target="recent-orders-tab">
+                    <i class="fa-solid fa-history"></i> Recent Session Orders
+                </button>
+                <button class="section-tab" data-target="logs-tab">
+                    <i class="fa-solid fa-terminal"></i> Live Server Logs
+                </button>
+            </div>
+            
+            <div class="tab-contents">
+                <div id="recent-orders-tab" class="tab-panel active">
+                    <div class="table-container">
+                        <table class="table" id="orders-table">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Symbol</th>
+                                    <th>Side</th>
+                                    <th>Type</th>
+                                    <th>Qty</th>
+                                    <th>Price</th>
+                                    <th>Status</th>
+                                    <th>Time</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="no-data-row">
+                                    <td colspan="8">No orders placed in this session yet.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="logs-tab" class="tab-panel">
+                    <div class="terminal-header">
+                        <span>logs/trading.log</span>
+                        <button id="clear-terminal" class="btn btn-sm btn-outline"><i class="fa-solid fa-trash-can"></i> Clear Terminal</button>
+                    </div>
+                    <div class="terminal-body" id="log-terminal">
+                        <div class="log-line text-muted">Connecting to logs feed...</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="modal-overlay" id="settings-modal">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <h3><i class="fa-solid fa-shield-halved"></i> Binance Testnet Credentials</h3>
+                    <button class="modal-close" id="settings-close"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="modal-body">
+                    <p class="modal-desc">
+                        Input your Binance USDT-M Futures Testnet keys below. These will override the <code>.env</code> file credentials for the current server session (stored in-memory only).
+                    </p>
+                    <form id="config-form">
+                        <div class="form-group">
+                            <label for="modal-api-key">API Key</label>
+                            <input type="text" id="modal-api-key" placeholder="Enter API Key" required autocomplete="off">
+                        </div>
+                        <div class="form-group">
+                            <label for="modal-api-secret">API Secret</label>
+                            <input type="password" id="modal-api-secret" placeholder="Enter API Secret" required autocomplete="off">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">
+                            Save Keys & Sync
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/app.js"></script>
+</body>
+</html>
